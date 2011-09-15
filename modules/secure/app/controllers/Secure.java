@@ -61,6 +61,10 @@ public class Secure extends Controller {
                 }
             }
         }
+        if((Boolean)Security.invoke("isConnected")) {
+                redirectToOriginalURL();
+        }
+        
         flash.keep("url");
         render();
     }
