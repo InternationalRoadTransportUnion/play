@@ -15,8 +15,14 @@ public class Secure extends Controller {
     static void checkAccess() throws Throwable {
         // Authent
         if(!(Boolean)Security.invoke("isConnected")) {
-            flash.put("url", "GET".equals(request.method) ? request.url : Play.ctxPath + "/"); // seems a good default
-            login();
+        	if (! request.invokedMethod.isAnnotationPresent(AjaxRequest.class)) {
+	        	if (flash.get("url") == null) {
+	        		flash.put("url", getRedirectUrl()); // seems a good default
+	        	}
+	            login();
+        	} else {
+        		flash.keep();
+        	}
         }
         // Checks
         Check check = getActionAnnotation(Check.class);
@@ -28,6 +34,10 @@ public class Secure extends Controller {
             check(check);
         }
     }
+
+	private static String getRedirectUrl() {
+		return "GET".equals(request.method) ? request.url : Play.ctxPath + "/"; 
+	}
 
     private static void check(Check check) throws Throwable {
         for(String profile : check.value()) {
