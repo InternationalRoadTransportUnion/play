@@ -111,6 +111,7 @@ public class Secure extends Controller {
 
         }
         // Redirect to the original URL (or /)
+        flash.keep();
         redirectToOriginalURL();
     }
 
