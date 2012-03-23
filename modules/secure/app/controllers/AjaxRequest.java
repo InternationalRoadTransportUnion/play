@@ -11,4 +11,5 @@ import java.lang.annotation.Target;
  * Methods from a Play controller with this annotation will not be processed by the "secure" controller
  * in order to allow the user to be redirected properly after a successful login.
  */
-public @interface AjaxRequest {}
+@Deprecated
+public  @interface AjaxRequest {}
