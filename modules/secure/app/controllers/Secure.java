@@ -18,7 +18,7 @@ public class Secure extends Controller {
     static void checkAccess() throws Throwable {
         // Authent
         if(!(Boolean)Security.invoke("isConnected")) {
-        	if (! request.invokedMethod.isAnnotationPresent(AjaxRequest.class)) {
+        	if (! request.isAjax())	{
 	        	if (flash.get("url") == null) {
 	        		flash.put("url", getRedirectUrl()); // seems a good default
 	        		flash.keep();
