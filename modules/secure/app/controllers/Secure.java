@@ -6,6 +6,7 @@ import java.util.Date;
 
 import play.Play;
 import play.data.validation.Required;
+import play.data.validation.Validation;
 import play.libs.Crypto;
 import play.mvc.Before;
 import play.mvc.Controller;
@@ -107,7 +108,7 @@ public class Secure extends Controller {
         // This is the official method name
         allowed = (Boolean)Security.invoke("authenticate", username, password);
         
-        if(validation.hasErrors() || !allowed) {
+        if(Validation.hasErrors() || !allowed) {
             flash.keep("url");
             flash.error("secure.error");
             params.flash();
@@ -162,8 +163,9 @@ public class Secure extends Controller {
     	}
     	
     	private static Object invoke(String m, Object... args) throws Throwable {
-            Class trust = null;
-            List<Class> classes = Play.classloader.getAssignableClasses(Trust.class);
+            Class<?> trust = null;
+            @SuppressWarnings("rawtypes")
+			List<Class> classes = Play.classloader.getAssignableClasses(Trust.class);
             if(classes.size() == 0) {
                 trust = Trust.class;
             } else {
