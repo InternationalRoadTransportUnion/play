@@ -29,6 +29,9 @@ public class Secure extends Controller {
         			login();
         	} else {
         		flash.keep();
+        		boolean allowed = doTrust();
+        		if (! allowed)
+        			unauthorized();
         	}
         }
         // Checks
