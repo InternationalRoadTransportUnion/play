@@ -11,6 +11,9 @@ import play.libs.Time;
 import play.mvc.Before;
 import play.mvc.Controller;
 import play.mvc.Http;
+import play.mvc.Http.Request;
+import play.mvc.Http.Response;
+import play.mvc.results.Result;
 import play.utils.Java;
 
 public class Secure extends Controller {
@@ -30,8 +33,13 @@ public class Secure extends Controller {
         	} else {
         		flash.keep();
         		boolean allowed = doTrust();
-        		if (! allowed)
-        			unauthorized();
+        		if (! allowed) {
+        			throw new Result() {
+        			    public void apply(Request request, Response response) {
+        			        response.status = Http.StatusCode.UNAUTHORIZED;
+        			    }
+        			};
+        		}
         	}
         }
         // Checks
