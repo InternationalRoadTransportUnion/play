@@ -19,7 +19,7 @@ import play.utils.Java;
 public class Secure extends Controller {
 
     @Before(unless={"login", "authenticate", "logout"})
-    static void checkAccess() throws Throwable {
+    static void checkAccess() throws Exception {
         // Authent
         if(!(Boolean)Security.invoke("isConnected")) {
         	if (! request.isAjax())	{
@@ -53,7 +53,7 @@ public class Secure extends Controller {
         }
     }
 
-	private static boolean doTrust() throws Throwable {
+	private static boolean doTrust() throws Exception {
 		boolean allowed = false;
 		if ((Boolean) Trust.invoke("trustPhaseDone")) {
 			String username = (String) Trust.invoke("trustedUser");
@@ -68,7 +68,7 @@ public class Secure extends Controller {
 		return "GET".equals(request.method) ? request.url : Play.ctxPath + "/"; 
 	}
 
-    private static void check(Check check) throws Throwable {
+    private static void check(Check check) throws Exception {
         for(String profile : check.value()) {
             boolean hasProfile = (Boolean)Security.invoke("check", profile);
             if(!hasProfile) {
@@ -79,7 +79,7 @@ public class Secure extends Controller {
 
     // ~~~ Login
 
-    public static void login() throws Throwable {
+    public static void login() throws Exception {
         Http.Cookie remember = request.cookies.get("rememberme");
         if(remember != null) {
             int firstIndex = remember.value.indexOf("-");
@@ -112,7 +112,7 @@ public class Secure extends Controller {
         render();
     }
 
-    public static void authenticate(@Required String username, String password, boolean remember) throws Throwable {
+    public static void authenticate(@Required String username, String password, boolean remember) throws Exception {
         // Check tokens
         Boolean allowed = false;
         
@@ -139,7 +139,7 @@ public class Secure extends Controller {
         redirectToOriginalURL();
     }
 
-    public static void logout() throws Throwable {
+    public static void logout() throws Exception {
         Security.invoke("onDisconnect");
         session.clear();
         response.removeCookie("rememberme");
@@ -151,7 +151,7 @@ public class Secure extends Controller {
 
     // ~~~ Utils
 
-    static void redirectToOriginalURL() throws Throwable {
+    static void redirectToOriginalURL() throws Exception {
         Security.invoke("onAuthenticated");
         String url = flash.get("url");
         if(url == null) {
@@ -173,11 +173,14 @@ public class Secure extends Controller {
     	static void onDisconnected() {
     	}
     	
-    	private static Object invoke(String m, Object... args) throws Throwable {
+    	private static Object invoke(String m, Object... args) throws Exception {
             try {
                 return Java.invokeChildOrStatic(Trust.class, m, args);
             } catch(InvocationTargetException e) {
-                throw e.getTargetException();
+            	Throwable cause = e.getTargetException();
+            	if (cause instanceof Error)
+            		throw (Error) cause;
+                throw (Exception) cause;
             }
         }
     }
@@ -266,12 +269,15 @@ public class Secure extends Controller {
             forbidden();
         }
 
-        private static Object invoke(String m, Object... args) throws Throwable {
+        private static Object invoke(String m, Object... args) throws Exception {
 
             try {
                 return Java.invokeChildOrStatic(Security.class, m, args);       
             } catch(InvocationTargetException e) {
-                throw e.getTargetException();
+            	Throwable cause = e.getTargetException();
+            	if (cause instanceof Error)
+            		throw (Error) cause;
+                throw (Exception) cause;
             }
         }
 
