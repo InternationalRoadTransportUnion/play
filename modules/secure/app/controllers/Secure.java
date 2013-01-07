@@ -159,6 +159,24 @@ public class Secure extends Controller {
         }
         redirect(url);
     }
+    
+    /**
+     * Indicate if a user is currently connected
+     * @return  true if the user is connected
+     */
+    static boolean isConnected() throws Exception {
+        return (Boolean) Security.invoke("isConnected");
+    }
+    
+    /**
+     * This method checks that a profile is allowed to view this page/method.
+     * It complements the @Check annotation usually found on method to allow
+     * to programmatically modify the rendered page based on the user's profile.
+     * @param profile
+     */
+    static boolean check(String profile) throws Exception {
+    	return (Boolean) Security.invoke("check", profile);
+    }
 
     public static class Trust extends Controller {
 
