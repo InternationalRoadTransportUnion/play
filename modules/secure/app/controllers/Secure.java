@@ -13,6 +13,7 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Http.Request;
 import play.mvc.Http.Response;
+import play.mvc.results.RenderJson;
 import play.mvc.results.Result;
 import play.utils.Java;
 
@@ -123,7 +124,23 @@ public class Secure extends Controller {
             flash.keep("url");
             flash.error("secure.error");
             params.flash();
-            login();
+            if (! request.isAjax())	{
+            	login();
+            } else {
+            	class AuthenticationFailed extends RenderJson {
+
+            		public AuthenticationFailed() {
+            			super(Validation.current());
+            		}
+
+            		public void apply(Request request, Response response) {
+            			response.status = Http.StatusCode.BAD_REQUEST;
+            			super.apply(request, response);
+            		}
+
+            	};
+            	throw new AuthenticationFailed();
+            }
         }
 	        
         // Remember if needed
@@ -134,9 +151,15 @@ public class Secure extends Controller {
             response.setCookie("rememberme", Crypto.sign(username + "-" + expiration.getTime()) + "-" + username + "-" + expiration.getTime(), duration);
 
         }
-        // Redirect to the original URL (or /)
+        
         flash.keep();
-        redirectToOriginalURL();
+        if (! request.isAjax())	{
+        	// Redirect to the original URL (or /)
+        	redirectToOriginalURL();
+        } else {
+        	Security.invoke("onAuthenticated");
+        	renderJSON((Object) getOriginalUrl());
+        }
     }
 
     public static void logout() throws Exception {
@@ -153,12 +176,17 @@ public class Secure extends Controller {
 
     static void redirectToOriginalURL() throws Exception {
         Security.invoke("onAuthenticated");
-        String url = flash.get("url");
+        String url = getOriginalUrl();
+        redirect(url);
+    }
+
+	private static String getOriginalUrl() {
+		String url = flash.get("url");
         if(url == null) {
             url = Play.ctxPath + "/";
         }
-        redirect(url);
-    }
+		return url;
+	}
     
     /**
      * Indicate if a user is currently connected
